@@ -4,23 +4,30 @@ import Modal from '../../components/UI/Modal/Modal'
 import OrderSummary from '../../components/Burger/OrderSummary/OrderSummary'
 import BuildControls from '../../components/Burger/BuildControls/BuildControls'
 import orderSummary from '../../components/Burger/OrderSummary/OrderSummary'
+import axios from '../../axiosOrders'
+import errorHandler from '../../hoc/ErrorHandler/ErrorHandler'
+import Spinner from '../../components/UI/Spinner/Spinner'
 const INGREDIENT_PRICES = {
     lettuse: 0.5,
     cheese: 0.5,
     bacon: 1.0,
     meat: 1.5
 }
-export default class BurgerBuilder extends Component {
+class BurgerBuilder extends Component {
     state = {
-        ingredients: {
-            lettuse: 0,
-            bacon: 0,
-            cheese: 0,
-            meat: 0
-        },
+        ingredients: null,
         totalPrice: 4,
         purchaseable: false,
-        purchasing: false
+        purchasing: false,
+        loading: false
+    }
+
+    componentDidMount(){
+        axios.get('https://burger-builder-85660-default-rtdb.firebaseio.com/ingredients.json')
+        .then(res => {
+            console.log(res.data)
+            this.setState({ingredients: res.data})
+        })
     }
 
     addIngredientHandler(type){
@@ -69,30 +76,63 @@ export default class BurgerBuilder extends Component {
     }
 
     continueCheckoutHandler(){
-        alert('enjoy your burger')
-    }
+        this.setState({loading: true})
+        const order = {
+            price: this.state.totalPrice,
+            ingredients : this.state.ingredients,
+            customer: {
+                name: "Ryan Thabet",
+                address: {
+                    street: "21 jump street",
+                    zipCode: 'T5T2ED',
+                    country: 'Canada'
+                },
+                email: 'ryan.thabe@gmail.com'   
+            },
+        }
+        axios.post('/orders.json', order)
+        .then(res => this.setState({loading: false, purchasing: false}))
+        .catch(err => this.setState({loading: false, purchasing: false}))
+    };
 
     render(){
+        let orderSummary = null
+        if (this.state.ingredients){
+            orderSummary = (
+                <OrderSummary
+                    price = {this.state.totalPrice}
+                    purchaseCancelled={this.removeCheckoutHandler.bind(this)}
+                    purchaseContinued={this.continueCheckoutHandler.bind(this)}
+                    ingredients = {this.state.ingredients}/> 
+            )
+        }
+
+        if (this.state.loading){
+            orderSummary = <Spinner/>
+        }
         return (
             <Fragment>
                 <Modal show={this.state.purchasing}
                  removeCheckout={this.removeCheckoutHandler.bind(this)}>
-                    <OrderSummary
-                    price = {this.state.totalPrice}
-                    purchaseCancelled={this.removeCheckoutHandler.bind(this)}
-                    purchaseContinued={this.continueCheckoutHandler.bind(this)}
-                    ingredients = {this.state.ingredients}/>
+                    {orderSummary}
                 </Modal>
-                <Burger ingredients={this.state.ingredients}/>
-                <BuildControls 
-                ingredientAdded= {this.addIngredientHandler.bind(this)}
-                ingredientRemoved = {this.removeIngredientHandler.bind(this)}
-                price = {this.state.totalPrice}
-                purchaseable = {this.state.purchaseable}
-                ordered = {this.purchaseHandler.bind(this)}
-                />
+                { this.state.ingredients ?
+                <Fragment>
+                    <Burger ingredients={this.state.ingredients}/>
+                    <BuildControls 
+                    ingredientAdded= {this.addIngredientHandler.bind(this)}
+                    ingredientRemoved = {this.removeIngredientHandler.bind(this)}
+                    price = {this.state.totalPrice}
+                    purchaseable = {this.state.purchaseable}
+                    ordered = {this.purchaseHandler.bind(this)}
+                    />
+                </Fragment>
+                : <Spinner/>
+                }
 
             </Fragment>
         );
     }
 }
+
+export default errorHandler(BurgerBuilder, axios)
