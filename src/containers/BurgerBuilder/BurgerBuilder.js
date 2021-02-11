@@ -1,4 +1,4 @@
-import React, { Component, Fragment, useState } from 'react'
+import React, { Component, Fragment } from 'react'
 import Burger from '../../components/Burger/Burger'
 import Modal from '../../components/UI/Modal/Modal'
 import OrderSummary from '../../components/Burger/OrderSummary/OrderSummary'
@@ -25,7 +25,6 @@ class BurgerBuilder extends Component {
     componentDidMount(){
         axios.get('https://burger-builder-85660-default-rtdb.firebaseio.com/ingredients.json')
         .then(res => {
-            console.log(res.data)
             this.setState({ingredients: res.data})
         })
     }
@@ -76,23 +75,18 @@ class BurgerBuilder extends Component {
     }
 
     continueCheckoutHandler(){
-        this.setState({loading: true})
-        const order = {
-            price: this.state.totalPrice,
-            ingredients : this.state.ingredients,
-            customer: {
-                name: "Ryan Thabet",
-                address: {
-                    street: "21 jump street",
-                    zipCode: 'T5T2ED',
-                    country: 'Canada'
-                },
-                email: 'ryan.thabe@gmail.com'   
-            },
+        
+        const queryParams = []
+        for (let i in this.state.ingredients){
+            queryParams.push(encodeURIComponent(i) + '=' + 
+            encodeURIComponent(this.state.ingredients[i]))
         }
-        axios.post('/orders.json', order)
-        .then(res => this.setState({loading: false, purchasing: false}))
-        .catch(err => this.setState({loading: false, purchasing: false}))
+        queryParams.push('price=' + this.state.totalPrice)
+        const queryStr = queryParams.join('&');
+        this.props.history.push({
+            pathname: '/checkout',
+            search: '?' + queryStr
+        })
     };
 
     render(){
