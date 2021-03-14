@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import {Route, Redirect} from 'react-router-dom'
 import { connect } from 'react-redux'
 import ContactData from './ContactData/ContactData'
-import * as actions from '../../store/actions/index'
 import CheckoutSummary from '../../components/order/CheckoutSummary/CheckoutSummary'
 
 class Checkout extends Component{
@@ -18,7 +17,6 @@ class Checkout extends Component{
 
     render(){
         let summary = <Redirect to="/" />
-        console.log(this.props.purchased)
         if (this.props.ings){
             const purchasedRedirect = this.props.purchased ? <Redirect to='/'/> : null
             

@@ -10,7 +10,8 @@ const INGREDIENT_PRICES = {
 
 const initialState = {
     ingredients: null,
-        totalPrice: 4
+        totalPrice: 4,
+        building: false,
 }
 
 const reducer = (state=initialState, action) => {
@@ -22,18 +23,22 @@ const reducer = (state=initialState, action) => {
             const updatedIngredients = updateObject(state.ingredients, updatedIngredient)
             const updatedState = {
                 ingredients: updatedIngredients,
-                totalPrice: state.totalPrice + INGREDIENT_PRICES[action.ingredientName]
+                totalPrice: state.ingredients[action.ingredientName] < 3 
+                ? state.totalPrice + INGREDIENT_PRICES[action.ingredientName]
+                : state.totalPrice,
+                building: true,
             }
             return updateObject(state, updatedState)
         case (actionTypes.REMOVE_INGREDIENT):
             return {
                 ...state, ingredients: {
                     ...state.ingredients,
-                    [action.ingredientName]: state.ingredients[action.ingredientName] > 0
+                    [action.ingredientName]: state.ingredients[action.ingredientName] >= 0
                     ? state.ingredients[action.ingredientName] - 1 
                     : state.ingredients[action.ingredientName]
                 },
-                totalPrice: state.totalPrice - INGREDIENT_PRICES[action.ingredientName]
+                totalPrice: state.totalPrice - INGREDIENT_PRICES[action.ingredientName],
+                building: true,
             }
         case (actionTypes.SET_INGREDIENTS):
             return updateObject(state, {
@@ -43,7 +48,8 @@ const reducer = (state=initialState, action) => {
                     cheese: action.ingredients.cheese,
                     meat: action.ingredients.meat
                 },
-                totalPrice: 4
+                totalPrice: 4,
+                building: false
             })
         default:
             return state 

@@ -13,7 +13,8 @@ export default function buildControls(props){
     <div className= {classes.BuildControls}>
         <p>Current Price: <strong>{props.price.toFixed(2)}$</strong></p>
         {controls.map(control => (
-        <BuildControl 
+        <BuildControl
+        disableButton={props.disable(control.type)}
         label={control.label}
          key={control.label}
          added={() => props.ingredientAdded(control.type)}
@@ -21,7 +22,7 @@ export default function buildControls(props){
         ))}
         <button 
         disabled={!props.purchaseable}
-        className={classes.OrderButton} onClick={props.ordered}>ORDER NOW</button>
+        className={classes.OrderButton} onClick={props.ordered}>{props.isAuth ? "ORDER NOW" : "SIGN UP TO ORDER"}</button>
     </div>
     )
 }
